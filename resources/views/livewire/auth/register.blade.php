@@ -13,6 +13,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
     public string $email = '';
     public string $password = '';
     public string $password_confirmation = '';
+    public array $roles = [];
 
     /**
      * Handle an incoming registration request.
@@ -23,11 +24,14 @@ new #[Layout('components.layouts.auth')] class extends Component {
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
+            'roles' => ['required', 'array', 'min:1'],
+            'roles.*' => ['in:hogar_temporal,adoptante'],
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
 
         event(new Registered(($user = User::create($validated))));
+        $user->assignRole($validated['roles']);
 
         Auth::login($user);
 
@@ -84,6 +88,24 @@ new #[Layout('components.layouts.auth')] class extends Component {
             :placeholder="__('Confirm password')"
             viewable
         />
+
+        <!-- Roles -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('Selecciona tu rol') }}</label>
+            <div class="flex flex-col gap-2">
+                <label class="inline-flex items-center">
+                    <input type="checkbox" wire:model="roles" value="hogar_temporal" class="form-checkbox">
+                    <span class="ml-2">Hogar temporal</span>
+                </label>
+                <label class="inline-flex items-center">
+                    <input type="checkbox" wire:model="roles" value="adoptante" class="form-checkbox">
+                    <span class="ml-2">Adoptante</span>
+                </label>
+            </div>
+            @error('roles')
+                <span class="text-red-500 text-xs">{{ $message }}</span>
+            @enderror
+        </div>
 
         <div class="flex items-center justify-end">
             <flux:button type="submit" variant="primary" class="w-full">
