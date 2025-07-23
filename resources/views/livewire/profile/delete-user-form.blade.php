@@ -20,6 +20,7 @@ new class extends Component
         tap(Auth::user(), $logout(...))->delete();
 
         $this->redirect('/', navigate: true);
+        $this->dispatchBrowserEvent('toast', ['message' => __('Cuenta eliminada correctamente.'), 'type' => 'success']);
     }
 }; ?>
 

@@ -14,6 +14,10 @@ new #[Layout('components.layouts.auth')] class extends Component {
     public string $password = '';
     public string $password_confirmation = '';
     public array $roles = [];
+    public string $telefono = '';
+    public string $direccion = '';
+    public string $ci = '';
+    public $foto_perfil;
 
     /**
      * Handle an incoming registration request.
@@ -26,7 +30,15 @@ new #[Layout('components.layouts.auth')] class extends Component {
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
             'roles' => ['required', 'array', 'min:1'],
             'roles.*' => ['in:hogar_temporal,adoptante'],
+            'telefono' => ['nullable', 'string', 'max:30'],
+            'direccion' => ['nullable', 'string', 'max:255'],
+            'ci' => ['nullable', 'string', 'max:30'],
+            'foto_perfil' => ['nullable', 'image', 'max:2048'],
         ]);
+
+        if ($this->foto_perfil) {
+            $validated['foto_perfil'] = $this->foto_perfil->store('perfiles', 'public');
+        }
 
         $validated['password'] = Hash::make($validated['password']);
 
@@ -103,6 +115,39 @@ new #[Layout('components.layouts.auth')] class extends Component {
                 </label>
             </div>
             @error('roles')
+                <span class="text-red-500 text-xs">{{ $message }}</span>
+            @enderror
+        </div>
+
+        <!-- Telefono -->
+        <flux:input
+            wire:model="telefono"
+            :label="__('Teléfono')"
+            type="text"
+            autocomplete="tel"
+            :placeholder="__('Teléfono')"
+        />
+        <!-- Dirección -->
+        <flux:input
+            wire:model="direccion"
+            :label="__('Dirección')"
+            type="text"
+            autocomplete="street-address"
+            :placeholder="__('Dirección')"
+        />
+        <!-- CI -->
+        <flux:input
+            wire:model="ci"
+            :label="__('CI')"
+            type="text"
+            autocomplete="off"
+            :placeholder="__('CI')"
+        />
+        <!-- Foto de perfil -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('Foto de perfil') }}</label>
+            <input type="file" wire:model="foto_perfil" accept="image/*" class="block w-full text-sm text-gray-500" />
+            @error('foto_perfil')
                 <span class="text-red-500 text-xs">{{ $message }}</span>
             @enderror
         </div>

@@ -1,20 +1,26 @@
 <?php
 
 return [
-
-    /*
-    |--------------------------------------------------------------------------
-    | Authentication Language Lines
-    |--------------------------------------------------------------------------
-    |
-    | The following language lines are used during authentication for various
-    | messages that we need to display to the user. You are free to modify
-    | these language lines according to your application's requirements.
-    |
-    */
-
-    'failed' => 'These credentials do not match our records.',
-    'password' => 'The provided password is incorrect.',
-    'throttle' => 'Too many login attempts. Please try again in :seconds seconds.',
-
+    'failed' => 'Estas credenciales no coinciden con nuestros registros.',
+    'password' => 'La contraseña proporcionada es incorrecta.',
+    'throttle' => 'Demasiados intentos de acceso. Por favor intenta de nuevo en :seconds segundos.',
+    'logout' => 'Sesión cerrada correctamente.',
+    'login' => 'Iniciar sesión',
+    'register' => 'Registrarse',
+    'email' => 'Correo electrónico',
+    'password_confirm' => 'Confirmar contraseña',
+    'remember_me' => 'Recuérdame',
+    'forgot_password' => '¿Olvidaste tu contraseña?',
+    'name' => 'Nombre',
+    'confirm' => 'Confirmar',
+    'already_registered' => '¿Ya tienes una cuenta?',
+    'dont_have_account' => '¿No tienes una cuenta?',
+    'create_account' => 'Crear cuenta',
+    'log_in' => 'Iniciar sesión',
+    'log_out' => 'Cerrar sesión',
+    'verify_email' => 'Verifica tu correo electrónico',
+    'send_verification' => 'Enviar enlace de verificación',
+    'reset_password' => 'Restablecer contraseña',
+    'send_reset_link' => 'Enviar enlace de restablecimiento',
+    'confirm_password' => 'Por favor confirma tu contraseña antes de continuar.',
 ];

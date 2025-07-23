@@ -17,24 +17,17 @@ new class extends Component
      */
     public function updatePassword(): void
     {
-        try {
-            $validated = $this->validate([
-                'current_password' => ['required', 'string', 'current_password'],
-                'password' => ['required', 'string', Password::defaults(), 'confirmed'],
-            ]);
-        } catch (ValidationException $e) {
-            $this->reset('current_password', 'password', 'password_confirmation');
+        $user = Auth::user();
 
-            throw $e;
-        }
-
-        Auth::user()->update([
-            'password' => Hash::make($validated['password']),
+        $validated = $this->validate([
+            'current_password' => ['required', 'string', 'current_password'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
-        $this->reset('current_password', 'password', 'password_confirmation');
+        $user->password = Hash::make($validated['password']);
+        $user->save();
 
-        $this->dispatch('password-updated');
+        $this->dispatchBrowserEvent('toast', ['message' => __('Contraseña actualizada correctamente.'), 'type' => 'success']);
     }
 }; ?>
 

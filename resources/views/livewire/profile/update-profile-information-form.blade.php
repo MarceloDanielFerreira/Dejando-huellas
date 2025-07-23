@@ -5,11 +5,20 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\Rule;
 use Livewire\Volt\Component;
+use Livewire\WithFileUploads;
+
 
 new class extends Component
 {
+    use WithFileUploads;
+
     public string $name = '';
     public string $email = '';
+    public string $telefono = '';
+    public string $direccion = '';
+    public string $ci = '';
+    public $foto_perfil;
+    public string $foto_perfil_url = '';
 
     /**
      * Mount the component.
@@ -18,6 +27,10 @@ new class extends Component
     {
         $this->name = Auth::user()->name;
         $this->email = Auth::user()->email;
+        $this->telefono = Auth::user()->telefono ?? '';
+        $this->direccion = Auth::user()->direccion ?? '';
+        $this->ci = Auth::user()->ci ?? '';
+        $this->foto_perfil_url = Auth::user()->foto_perfil ? asset('storage/' . Auth::user()->foto_perfil) : 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name);
     }
 
     /**
@@ -30,7 +43,15 @@ new class extends Component
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
+            'telefono' => ['nullable', 'string', 'max:30'],
+            'direccion' => ['nullable', 'string', 'max:255'],
+            'ci' => ['nullable', 'string', 'max:30'],
+            'foto_perfil' => ['nullable', 'image', 'max:2048'],
         ]);
+
+        if ($this->foto_perfil) {
+            $validated['foto_perfil'] = $this->foto_perfil->store('perfiles', 'public');
+        }
 
         $user->fill($validated);
 
@@ -40,7 +61,10 @@ new class extends Component
 
         $user->save();
 
+        $this->foto_perfil_url = $user->foto_perfil ? asset('storage/' . $user->foto_perfil) : 'https://ui-avatars.com/api/?name=' . urlencode($user->name);
+
         $this->dispatch('profile-updated', name: $user->name);
+        $this->dispatchBrowserEvent('toast', ['message' => __('Perfil actualizado correctamente.'), 'type' => 'success']);
     }
 
     /**
@@ -102,6 +126,31 @@ new class extends Component
                     @endif
                 </div>
             @endif
+        </div>
+
+        <div class="flex items-center gap-4">
+            <div class="flex flex-col items-center">
+                <img src="{{ $foto_perfil_url }}" alt="Foto de perfil" class="h-20 w-20 rounded-full object-cover mb-2" />
+                <input type="file" wire:model="foto_perfil" accept="image/*" class="block w-full text-sm text-gray-500" />
+                @error('foto_perfil')
+                    <span class="text-red-500 text-xs">{{ $message }}</span>
+                @enderror
+            </div>
+        </div>
+        <div>
+            <x-input-label for="telefono" :value="__('Teléfono')" />
+            <x-text-input wire:model="telefono" id="telefono" name="telefono" type="text" class="mt-1 block w-full" autocomplete="tel" />
+            <x-input-error class="mt-2" :messages="$errors->get('telefono')" />
+        </div>
+        <div>
+            <x-input-label for="direccion" :value="__('Dirección')" />
+            <x-text-input wire:model="direccion" id="direccion" name="direccion" type="text" class="mt-1 block w-full" autocomplete="street-address" />
+            <x-input-error class="mt-2" :messages="$errors->get('direccion')" />
+        </div>
+        <div>
+            <x-input-label for="ci" :value="__('CI')" />
+            <x-text-input wire:model="ci" id="ci" name="ci" type="text" class="mt-1 block w-full" />
+            <x-input-error class="mt-2" :messages="$errors->get('ci')" />
         </div>
 
         <div class="flex items-center gap-4">
