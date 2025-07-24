@@ -1,39 +1,38 @@
 <?php
 
+namespace Tests\Feature\Settings;
+
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
-use Livewire\Volt\Volt;
+use Livewire\Livewire;
 
-test('password can be updated', function () {
+test('la contraseña puede ser actualizada', function () {
     $user = User::factory()->create([
         'password' => Hash::make('password'),
     ]);
 
-    $this->actingAs($user);
-
-    $response = Volt::test('settings.password')
+    Livewire::actingAs($user)
+        ->test('profile.update-password-form')
         ->set('current_password', 'password')
         ->set('password', 'new-password')
         ->set('password_confirmation', 'new-password')
-        ->call('updatePassword');
-
-    $response->assertHasNoErrors();
+        ->call('updatePassword')
+        ->assertHasNoErrors()
+        ->assertDispatched('password-updated');
 
     expect(Hash::check('new-password', $user->refresh()->password))->toBeTrue();
 });
 
-test('correct password must be provided to update password', function () {
+test('se debe proporcionar la contraseña correcta para actualizar', function () {
     $user = User::factory()->create([
         'password' => Hash::make('password'),
     ]);
 
-    $this->actingAs($user);
-
-    $response = Volt::test('settings.password')
+    Livewire::actingAs($user)
+        ->test('profile.update-password-form')
         ->set('current_password', 'wrong-password')
         ->set('password', 'new-password')
         ->set('password_confirmation', 'new-password')
-        ->call('updatePassword');
-
-    $response->assertHasErrors(['current_password']);
+        ->call('updatePassword')
+        ->assertHasErrors(['current_password']);
 });
