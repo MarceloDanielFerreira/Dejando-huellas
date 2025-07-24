@@ -35,7 +35,16 @@ new #[Layout('components.layouts.auth')] class extends Component {
         $this->validate([
             'token' => ['required'],
             'email' => ['required', 'string', 'email'],
-            'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
+            'password' => [
+                'required',
+                'string',
+                'confirmed',
+                Rules\Password::min(8)
+                    ->mixedCase()
+                    ->numbers()
+                    ->symbols()
+                    ->uncompromised(),
+            ],
         ]);
 
         // Here we will attempt to reset the user's password. If it is successful we
@@ -48,6 +57,13 @@ new #[Layout('components.layouts.auth')] class extends Component {
                     'password' => Hash::make($this->password),
                     'remember_token' => Str::random(60),
                 ])->save();
+
+                // Track password history
+                if (method_exists($user, 'passwordHistories')) {
+                    $user->passwordHistories()->create([
+                        'password' => Hash::make($this->password)
+                    ]);
+                }
 
                 event(new PasswordReset($user));
             }
@@ -77,7 +93,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
     <form wire:submit="resetPassword" class="flex flex-col gap-6">
         <!-- Email Address -->
         <flux:input
-            wire:model="email"
+            wire:model.live="email"
             :label="__('Email')"
             type="email"
             required
@@ -86,18 +102,24 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
         <!-- Password -->
         <flux:input
-            wire:model="password"
+            wire:model.live="password"
             :label="__('Password')"
             type="password"
             required
             autocomplete="new-password"
             :placeholder="__('Password')"
             viewable
+            minlength="8"
         />
+
+        <!-- Password requirements hint -->
+        <p class="text-sm text-gray-600">
+            {{ __('Password must be at least 8 characters and include uppercase, lowercase, numbers, and symbols') }}
+        </p>
 
         <!-- Confirm Password -->
         <flux:input
-            wire:model="password_confirmation"
+            wire:model.live="password_confirmation"
             :label="__('Confirm password')"
             type="password"
             required

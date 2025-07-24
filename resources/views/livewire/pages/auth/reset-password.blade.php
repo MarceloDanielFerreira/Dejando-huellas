@@ -36,7 +36,16 @@ new #[Layout('layouts.guest')] class extends Component
         $this->validate([
             'token' => ['required'],
             'email' => ['required', 'string', 'email'],
-            'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
+            'password' => [
+                'required',
+                'string',
+                'confirmed',
+                Rules\Password::min(8)
+                    ->mixedCase()
+                    ->numbers()
+                    ->symbols()
+                    ->uncompromised(),
+            ],
         ]);
 
         // Here we will attempt to reset the user's password. If it is successful we
@@ -49,6 +58,13 @@ new #[Layout('layouts.guest')] class extends Component
                     'password' => Hash::make($this->password),
                     'remember_token' => Str::random(60),
                 ])->save();
+
+                // Track password history
+                if (method_exists($user, 'passwordHistories')) {
+                    $user->passwordHistories()->create([
+                        'password' => Hash::make($this->password)
+                    ]);
+                }
 
                 event(new PasswordReset($user));
             }
@@ -74,24 +90,42 @@ new #[Layout('layouts.guest')] class extends Component
         <!-- Email Address -->
         <div>
             <x-input-label for="email" :value="__('Email')" />
-            <x-text-input wire:model="email" id="email" class="block mt-1 w-full" type="email" name="email" required autofocus autocomplete="username" />
+            <x-text-input wire:model.live="email" id="email" class="block mt-1 w-full" type="email" name="email" required autofocus autocomplete="username" />
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
         <!-- Password -->
         <div class="mt-4">
             <x-input-label for="password" :value="__('Password')" />
-            <x-text-input wire:model="password" id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
+            <x-text-input 
+                wire:model.live="password" 
+                id="password" 
+                class="block mt-1 w-full" 
+                type="password" 
+                name="password" 
+                required 
+                autocomplete="new-password"
+                minlength="8" />
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
+
+        <!-- Password requirements hint -->
+        <p class="text-sm text-gray-600 mt-2">
+            {{ __('Password must be at least 8 characters and include uppercase, lowercase, numbers, and symbols') }}
+        </p>
 
         <!-- Confirm Password -->
         <div class="mt-4">
             <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
 
-            <x-text-input wire:model="password_confirmation" id="password_confirmation" class="block mt-1 w-full"
-                          type="password"
-                          name="password_confirmation" required autocomplete="new-password" />
+            <x-text-input 
+                wire:model.live="password_confirmation" 
+                id="password_confirmation" 
+                class="block mt-1 w-full"
+                type="password"
+                name="password_confirmation" 
+                required 
+                autocomplete="new-password" />
 
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
         </div>
